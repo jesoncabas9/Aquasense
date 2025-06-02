@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>ESP32 Sensor Dashboard</title>
+</head>
+
+<body>
+    <h2>Temperature: <span id="temp">--</span>°C</h2>
+    <h2>Humidity: <span id="hum">--</span>%</h2>
+
+    <script>
+        const socket = new WebSocket('ws://192.168.18.34/ws');
+
+        socket.onmessage = function(event) {
+            const data = JSON.parse(event.data);
+            document.getElementById('temp').textContent = data.temp;
+            document.getElementById('hum').textContent = data.hum;
+        };
+    </script>
+</body>
+
+</html>
