@@ -3,51 +3,57 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>AquaSense LED Control</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Water Monitoring</title>
     <style>
         body {
-            font-family: 'Segoe UI', sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            background: #f0f4f8;
-            margin: 0;
-        }
-        
-        h1 {
+            font-family: Arial, sans-serif;
+            background: #f4f6f9;
             color: #333;
+            text-align: center;
+            padding: 20px;
         }
         
-        .toggle-container {
-            margin-top: 20px;
+        .card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin: 15px auto;
+            max-width: 400px;
         }
         
-        .switch {
+        .label {
+            font-size: 1.1em;
+            margin-bottom: 10px;
+        }
+        
+        .value {
+            font-size: 1.4em;
+            font-weight: bold;
+        }
+        
+        .toggle-switch {
             position: relative;
             display: inline-block;
             width: 60px;
             height: 34px;
         }
         
-        .switch input {
-            opacity: 0;
-            width: 0;
-            height: 0;
+        .toggle-switch input {
+            display: none;
         }
         
         .slider {
             position: absolute;
-            cursor: pointer;
             top: 0;
             left: 0;
             right: 0;
             bottom: 0;
             background-color: #ccc;
-            transition: 0.4s;
             border-radius: 34px;
+            cursor: pointer;
+            transition: 0.4s;
         }
         
         .slider:before {
@@ -58,8 +64,8 @@
             left: 4px;
             bottom: 4px;
             background-color: white;
-            transition: 0.4s;
             border-radius: 50%;
+            transition: 0.4s;
         }
         
         input:checked+.slider {
@@ -69,32 +75,47 @@
         input:checked+.slider:before {
             transform: translateX(26px);
         }
-        
-        .status {
-            margin-top: 15px;
-            font-weight: bold;
-            color: #444;
-        }
     </style>
 </head>
 
 <body>
-
-    <h1>LED Control Panel</h1>
-    <div class="toggle-container">
-        <label class="switch">
-      <input type="checkbox" id="ledToggle">
+    <h1>Smart Water Monitoring</h1>
+    <div class="card">
+        <div class="label">Solenoid Valve</div>
+        <label class="toggle-switch">
+      <input type="checkbox" id="solenoidToggle">
       <span class="slider"></span>
     </label>
     </div>
-    <div class="status" id="statusText">Loading...</div>
 
-    <!-- Firebase SDKs -->
+    <div class="card">
+        <div class="label">Flow Rate (L/min)</div>
+        <div class="value" id="flowRate">0</div>
+    </div>
+
+    <div class="card">
+        <div class="label">Turbidity</div>
+        <div class="value" id="turbidity">0</div>
+    </div>
+
+    <div class="card">
+        <div class="label">TDS</div>
+        <div class="value" id="tds">0</div>
+    </div>
+
+    <div class="card">
+        <div class="label">Temperature (°C)</div>
+        <div class="value" id="temperature">25</div>
+    </div>
+
+    <div class="card">
+        <div class="label">pH Level</div>
+        <div class="value" id="ph">7</div>
+    </div>
+
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-
     <script>
-        // ✅ Replace with YOUR Firebase project config:
         const firebaseConfig = {
             apiKey: "AIzaSyAU_McAspgW4FxeQW8VscfKNTZ-xEs3VSc",
             authDomain: "project-aquasense.firebaseapp.com",
@@ -105,24 +126,23 @@
             appId: "1:184557890348:web:b0665ff218f6f05010da89"
         };
 
-        // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
-        const ledRef = db.ref("LED/status");
 
-        const toggle = document.getElementById("ledToggle");
-        const statusText = document.getElementById("statusText");
 
-        // Realtime listener
-        ledRef.on("value", (snapshot) => {
-            const value = snapshot.val();
-            toggle.checked = value === true;
-            statusText.textContent = `LED is ${value ? "ON" : "OFF"}`;
-        });
+        const updateUI = (id, val) => document.getElementById(id).textContent = val;
 
-        // Update database on toggle
+        db.ref("Sensors/flowRate").on("value", snap => updateUI("flowRate", snap.val()));
+        db.ref("Sensors/turbidity").on("value", snap => updateUI("turbidity", snap.val()));
+        db.ref("Sensors/tds").on("value", snap => updateUI("tds", snap.val()));
+        db.ref("Sensors/temperature").on("value", snap => updateUI("temperature", snap.val()));
+        db.ref("Sensors/ph").on("value", snap => updateUI("ph", snap.val()));
+
+        const toggle = document.getElementById("solenoidToggle");
+        db.ref("Controls/solenoid").on("value", snap => toggle.checked = snap.val());
+
         toggle.addEventListener("change", () => {
-            ledRef.set(toggle.checked);
+            db.ref("Controls/solenoid").set(toggle.checked);
         });
     </script>
 </body>
