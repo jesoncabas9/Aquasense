@@ -4,18 +4,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aquasense</title>
-    <link rel="icon" href="Aquasense Logo.ico" type="image/x-icon">
+    <title>Smart Water Monitoring</title>
     <style>
         body {
             font-family: Arial, sans-serif;
+            background: #f4f6f9;
             color: #333;
             text-align: center;
             padding: 20px;
-            background-image: url(Arctic\ Flow.png);
-            background-position: center;
-            background-repeat: no-repeat;
-            background-size: cover;
         }
         
         .card {
@@ -91,8 +87,8 @@
         
         button {
             padding: 10px 20px;
-            background-color: white;
-            color: black;
+            background-color: #4caf50;
+            color: white;
             border: none;
             border-radius: 6px;
             cursor: pointer;
@@ -106,98 +102,82 @@
             max-width: 500px;
             height: 350px;
             margin: 0 auto;
-            margin-top: 10vh;
-            padding: 50px;
+            margin-top: 15vh;
+            padding: 20px;
+            background: white;
             border-radius: 80px;
-            box-shadow: 0 2px 10px rgba(255, 255, 255, 0.641);
-            background: rgba(0, 0, 0, 0.327);
-            backdrop-filter: blur(40%);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         }
         
-        #logintext:hover {
-            background-color: black;
-            color: white;
-            transform: scale(1.1);
-        }
-        
-        #loginSection:hover {
-            transform: scale(1.05);
-        }
-        
-        .titleX {
-            padding-top: 20px;
-            display: block;
-            font-size: 3rem;
-            color: white;
-            text-shadow: 2px 2px 4px rgba(0, 10, 20, 0.716);
-            font-weight: bold;
+        #loginSection h2 {
+            margin-bottom: 20px;
         }
     </style>
 </head>
 
 <body>
-    <h1 class="titleX">Smart Water Monitoring</h1>
+    <h1>Smart Water Monitoring</h1>
 
-
+    <!-- Login Section -->
     <div id="loginSection" class="login-section">
-        <h1 style="margin-top: 4vh; color: white; margin-bottom:6vh">LOGIN</h1>
-        <input type="email" id="email" placeholder="Email" style="height: 40px; background:transparent; color:white"><br>
-        <input type="password" id="password" placeholder="Password" style="height: 40px; background:transparent; color: white"><br><br>
-        <button onclick=" login() " style="height: 50px; border-radius:80px; width:200px; margin-top: 2vh" id="logintext">Login</button>
+        <h2 style="margin-top: 5vh;">Login</h2>
+        <input type="email" id="email" placeholder="Email"><br>
+        <input type="password" id="password" placeholder="Password"><br><br>
+        <button onclick="login()">Login</button>
     </div>
 
     <!-- Main Content (hidden until login) -->
-    <div id="mainContent " style="display:none; ">
-        <div class="card ">
-            <div class="label ">Solenoid Valve</div>
-            <label class="toggle-switch ">
-                <input type="checkbox " id="solenoidToggle ">
-                <span class="slider "></span>
+    <div id="mainContent" style="display:none;">
+        <div class="card">
+            <div class="label">Solenoid Valve</div>
+            <label class="toggle-switch">
+                <input type="checkbox" id="solenoidToggle">
+                <span class="slider"></span>
             </label>
         </div>
 
-        <div class="card ">
-            <div class="label ">Flow Rate (L/min)</div>
-            <div class="value " id="flowRate ">0</div>
+        <div class="card">
+            <div class="label">Flow Rate (L/min)</div>
+            <div class="value" id="flowRate">0</div>
         </div>
 
-        <div class="card ">
-            <div class="label ">Turbidity</div>
-            <div class="value " id="turbidity ">0</div>
+        <div class="card">
+            <div class="label">Turbidity</div>
+            <div class="value" id="turbidity">0</div>
         </div>
 
-        <div class="card ">
-            <div class="label ">TDS</div>
-            <div class="value " id="tds ">0</div>
+        <div class="card">
+            <div class="label">TDS</div>
+            <div class="value" id="tds">0</div>
         </div>
 
-        <div class="card ">
-            <div class="label ">Temperature (°C)</div>
-            <div class="value " id="temperature ">25</div>
+        <div class="card">
+            <div class="label">Temperature (°C)</div>
+            <div class="value" id="temperature">25</div>
         </div>
 
-        <div class="card ">
-            <div class="label ">pH Level</div>
-            <div class="value " id="ph ">7</div>
+        <div class="card">
+            <div class="label">pH Level</div>
+            <div class="value" id="ph">7</div>
         </div>
 
-        <button onclick="logout() ">Logout</button>
+        <button onclick="logout()">Logout</button>
     </div>
 
     <!-- Firebase Scripts -->
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js "></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js "></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js "></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
     <script>
         // Firebase config
         const firebaseConfig = {
-            apiKey: "AIzaSyAU_McAspgW4FxeQW8VscfKNTZ-xEs3VSc ",
-            authDomain: "project-aquasense.firebaseapp.com ",
-            databaseURL: "https://project-aquasense-default-rtdb.asia-southeast1.firebasedatabase.app ",
-            projectId: "project-aquasense ",
-            storageBucket: "project-aquasense.firebasestorage.app ",
-            messagingSenderId: "184557890348 ",
-            appId: "1:184557890348:web:b0665ff218f6f05010da89 "
+            apiKey: "AIzaSyAU_McAspgW4FxeQW8VscfKNTZ-xEs3VSc",
+            authDomain: "project-aquasense.firebaseapp.com",
+            databaseURL: "https://project-aquasense-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "project-aquasense",
+            storageBucket: "project-aquasense.firebasestorage.app",
+            messagingSenderId: "184557890348",
+            appId: "1:184557890348:web:b0665ff218f6f05010da89"
         };
 
         firebase.initializeApp(firebaseConfig);
@@ -206,8 +186,8 @@
 
         // Login function
         function login() {
-            const email = document.getElementById("email ").value;
-            const password = document.getElementById("password ").value;
+            const email = document.getElementById("email").value;
+            const password = document.getElementById("password").value;
             auth.signInWithEmailAndPassword(email, password)
                 .then(() => {
                     // Success
@@ -225,11 +205,11 @@
         // Auth state listener
         auth.onAuthStateChanged(user => {
             if (user) {
-                document.getElementById("loginSection ").style.display = "none ";
-                document.getElementById("mainContent ").style.display = "block ";
+                document.getElementById("loginSection").style.display = "none";
+                document.getElementById("mainContent").style.display = "block";
             } else {
-                document.getElementById("loginSection ").style.display = "block ";
-                document.getElementById("mainContent ").style.display = "none ";
+                document.getElementById("loginSection").style.display = "block";
+                document.getElementById("mainContent").style.display = "none";
             }
         });
 
@@ -238,16 +218,16 @@
             if (user) {
                 const updateUI = (id, val) => document.getElementById(id).textContent = val;
 
-                db.ref("Sensors/flowRate ").on("value ", snap => updateUI("flowRate ", snap.val()));
-                db.ref("Sensors/turbidity ").on("value ", snap => updateUI("turbidity ", snap.val()));
-                db.ref("Sensors/tds ").on("value ", snap => updateUI("tds ", snap.val()));
-                db.ref("Sensors/temperature ").on("value ", snap => updateUI("temperature ", snap.val()));
-                db.ref("Sensors/ph ").on("value ", snap => updateUI("ph ", snap.val()));
+                db.ref("Sensors/flowRate").on("value", snap => updateUI("flowRate", snap.val()));
+                db.ref("Sensors/turbidity").on("value", snap => updateUI("turbidity", snap.val()));
+                db.ref("Sensors/tds").on("value", snap => updateUI("tds", snap.val()));
+                db.ref("Sensors/temperature").on("value", snap => updateUI("temperature", snap.val()));
+                db.ref("Sensors/ph").on("value", snap => updateUI("ph", snap.val()));
 
-                const toggle = document.getElementById("solenoidToggle ");
-                db.ref("Controls/solenoid ").on("value ", snap => toggle.checked = snap.val());
-                toggle.addEventListener("change ", () => {
-                    db.ref("Controls/solenoid ").set(toggle.checked);
+                const toggle = document.getElementById("solenoidToggle");
+                db.ref("Controls/solenoid").on("value", snap => toggle.checked = snap.val());
+                toggle.addEventListener("change", () => {
+                    db.ref("Controls/solenoid").set(toggle.checked);
                 });
             }
         });
