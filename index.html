@@ -196,7 +196,7 @@
             /* Disable horizontal scroll */
             transition: 0.3s;
             /* Smooth open/close transition */
-            q padding-top: 60px;
+            padding-top: 60px;
             /* Add padding at the top */
             box-shadow: 2px 0 5px rgba(0, 0, 0, 0.5);
         }
@@ -249,7 +249,7 @@
         }
         
         #sidebar #logout {
-            margin-top: 3rem;
+            margin-top: 6rem;
             background-color: white;
             color: black;
         }
@@ -285,7 +285,7 @@
 
         <div class="card">
             <div class="label label2">Flow Rate (L/min)</div>
-            <div class="value" id="flowRate">0</div>
+            <div class="value" id="flowrate">0</div>
         </div>
 
         <div class="card">
@@ -364,7 +364,7 @@
             if (user) {
                 const updateUI = (id, val) => document.getElementById(id).textContent = val;
 
-                db.ref("sensors/flowRate").on("value", snap => updateUI("flowRate", snap.val()));
+                db.ref("sensors/flowrate").on("value", snap => updateUI("flowrate", snap.val()));
                 db.ref("sensors/turbidity").on("value", snap => updateUI("turbidity", snap.val()));
                 db.ref("sensors/tds").on("value", snap => updateUI("tds", snap.val()));
                 db.ref("/sensors/temperature").on("value", snap => updateUI("temperature", snap.val()));
