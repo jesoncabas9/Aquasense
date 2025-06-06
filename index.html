@@ -190,13 +190,13 @@
             /* On top of other elements */
             top: 0;
             left: 0;
-            background-color: transparent;
+            backdrop-filter: blur(40px);
             /* Black background */
             overflow-x: hidden;
             /* Disable horizontal scroll */
             transition: 0.3s;
             /* Smooth open/close transition */
-            padding-top: 60px;
+            q padding-top: 60px;
             /* Add padding at the top */
             box-shadow: 2px 0 5px rgba(0, 0, 0, 0.5);
         }
@@ -364,16 +364,16 @@
             if (user) {
                 const updateUI = (id, val) => document.getElementById(id).textContent = val;
 
-                db.ref("Sensors/flowRate").on("value", snap => updateUI("flowRate", snap.val()));
-                db.ref("Sensors/turbidity").on("value", snap => updateUI("turbidity", snap.val()));
-                db.ref("Sensors/tds").on("value", snap => updateUI("tds", snap.val()));
-                db.ref("Sensors/temperature").on("value", snap => updateUI("temperature", snap.val()));
-                db.ref("Sensors/ph").on("value", snap => updateUI("ph", snap.val()));
+                db.ref("sensors/flowRate").on("value", snap => updateUI("flowRate", snap.val()));
+                db.ref("sensors/turbidity").on("value", snap => updateUI("turbidity", snap.val()));
+                db.ref("sensors/tds").on("value", snap => updateUI("tds", snap.val()));
+                db.ref("/sensors/temperature").on("value", snap => updateUI("temperature", snap.val()));
+                db.ref("sensors/ph").on("value", snap => updateUI("ph", snap.val()));
 
                 const toggle = document.getElementById("solenoidToggle");
-                db.ref("Controls/solenoid").on("value", snap => toggle.checked = snap.val());
+                db.ref("/SolenoidValve/status").on("value", snap => toggle.checked = snap.val());
                 toggle.addEventListener("change", () => {
-                    db.ref("Controls/solenoid").set(toggle.checked);
+                    db.ref("/SolenoidValve/status").set(toggle.checked);
                 });
             }
         });
