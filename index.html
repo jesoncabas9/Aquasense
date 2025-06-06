@@ -4,14 +4,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smart Water Monitoring</title>
+    <title>Aquasense Dashboard</title>
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
     <style>
         body {
             font-family: Arial, sans-serif;
-            background: #f4f6f9;
+            background-image: url(Arctic\ Flow.png);
             color: #333;
             text-align: center;
             padding: 20px;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
         }
         
         .card {
@@ -98,38 +103,180 @@
             background-color: #45a049;
         }
         
+        #mainTitle {
+            font-size: 3rem;
+            color: white;
+            font-weight: 40;
+            border: 2px soli;
+            margin-top: 3rem;
+            font-weight: bold;
+            font-family: brushScriptMT;
+            text-shadow: black 2px 2px 4px;
+        }
+        
         .login-section {
             max-width: 500px;
             height: 350px;
             margin: 0 auto;
-            margin-top: 15vh;
+            margin-top: 10vh;
             padding: 20px;
-            background: white;
+            background: transparent;
             border-radius: 80px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.897);
+        }
+        
+        .login-section:hover {
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.889);
+            transform: scale(1.03);
+            transition: all 0.3s ease-in-out;
+            background: white;
         }
         
         #loginSection h2 {
             margin-bottom: 20px;
         }
+        
+        #titlex {
+            color: black;
+            font-weight: bold;
+            margin-top: 2.5rem;
+        }
+        
+        #email {
+            margin-top: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        #email,
+        #password {
+            height: 2rem;
+            background-color: transparent;
+            border: 1px solid black;
+        }
+        
+        #login {
+            width: 12rem;
+            background-color: black;
+            height: 3rem;
+            border-radius: 30px;
+            margin-top: 1rem;
+        }
+        
+        #login:hover {
+            background-color: white;
+            color: black;
+            transition: all 0.3s ease-in-out;
+            border: 2px solid black;
+        }
+        
+        #mainContent {
+            margin-top: 5rem;
+        }
+        
+        #mainContent .card {
+            border-radius: 650px;
+            height: 4rem;
+        }
+        /* Sidebar styles */
+        
+        .sidebar {
+            height: 100%;
+            /* Full height */
+            width: 0;
+            /* Hidden by default */
+            position: fixed;
+            /* Stay in place */
+            z-index: 1000;
+            /* On top of other elements */
+            top: 0;
+            left: 0;
+            background-color: transparent;
+            /* Black background */
+            overflow-x: hidden;
+            /* Disable horizontal scroll */
+            transition: 0.3s;
+            /* Smooth open/close transition */
+            padding-top: 60px;
+            /* Add padding at the top */
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.5);
+        }
+        
+        .sidebar button {
+            display: block;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 10px auto;
+            text-align: center;
+            cursor: pointer;
+            border-radius: 6px;
+            width: 80%;
+        }
+        
+        .close-btn {
+            background-color: white;
+            top: 40px;
+            height: auto;
+            font-size: 24px;
+            text-decoration: bold;
+            background: none;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .open-btn {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            font-size: 20px;
+            background-color: white;
+            color: black;
+            border: none;
+            padding: 10px 15px;
+            cursor: pointer;
+            border-radius: 6px;
+            z-index: 1001;
+            /* Above other elements */
+            transition: all 0.3s ease;
+            /* Smooth transition */
+        }
+        
+        .open-btn:hover {
+            background-color: white;
+            color: black;
+            transform: scale(1.1);
+        }
+        
+        #sidebar #logout {
+            margin-top: 3rem;
+            background-color: white;
+            color: black;
+        }
     </style>
+
 </head>
 
 <body>
-    <h1>Smart Water Monitoring</h1>
+    <h1 id="mainTitle">AQUASENSE DASHBOARD</h1>
 
-    <!-- Login Section -->
-    <div id="loginSection" class="login-section">
-        <h2 style="margin-top: 5vh;">Login</h2>
+    <div id="loginSection" class="login-section" data-aos="fade-left" data-aos-duration="1000" data-aos-delay="100">
+        <h2 id="titlex">Login</h2>
         <input type="email" id="email" placeholder="Email"><br>
         <input type="password" id="password" placeholder="Password"><br><br>
-        <button onclick="login()">Login</button>
+        <button onclick="login()" id="login">Login</button>
     </div>
 
     <!-- Main Content (hidden until login) -->
+
     <div id="mainContent" style="display:none;">
+        <div id="sidebar" class="sidebar">
+            <button onclick="logout()" id="logout">Logout</button>
+        </div>
+
+        <button id="toggleSidebar" class="open-btn">&#9776;</button>
         <div class="card">
-            <div class="label">Solenoid Valve</div>
+            <div class="label label1">Solenoid Valve</div>
             <label class="toggle-switch">
                 <input type="checkbox" id="solenoidToggle">
                 <span class="slider"></span>
@@ -137,31 +284,30 @@
         </div>
 
         <div class="card">
-            <div class="label">Flow Rate (L/min)</div>
+            <div class="label label2">Flow Rate (L/min)</div>
             <div class="value" id="flowRate">0</div>
         </div>
 
         <div class="card">
-            <div class="label">Turbidity</div>
+            <div class="label label3">Turbidity</div>
             <div class="value" id="turbidity">0</div>
         </div>
 
         <div class="card">
-            <div class="label">TDS</div>
+            <div class="label label4">TDS</div>
             <div class="value" id="tds">0</div>
         </div>
 
         <div class="card">
-            <div class="label">Temperature (°C)</div>
+            <div class="label label5">Temperature (°C)</div>
             <div class="value" id="temperature">25</div>
         </div>
 
         <div class="card">
-            <div class="label">pH Level</div>
+            <div class="label label6">pH Level</div>
             <div class="value" id="ph">7</div>
         </div>
 
-        <button onclick="logout()">Logout</button>
     </div>
 
     <!-- Firebase Scripts -->
@@ -232,6 +378,27 @@
             }
         });
     </script>
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+        AOS.init();
+    </script>
+    <script>
+        document.getElementById("toggleSidebar").addEventListener("click", function() {
+            const sidebar = document.getElementById("sidebar");
+            const toggleButton = document.getElementById("toggleSidebar");
+
+            if (sidebar.style.width === "250px") {
+                // Close the sidebar
+                sidebar.style.width = "0";
+                toggleButton.innerHTML = "&#9776;"; // Change to hamburger menu
+            } else {
+                // Open the sidebar
+                sidebar.style.width = "250px";
+                toggleButton.innerHTML = "&times;"; // Change to close (X) symbol
+            }
+        });
+    </script>
+
 </body>
 
 </html>
