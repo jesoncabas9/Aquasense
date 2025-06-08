@@ -530,11 +530,19 @@
                     const flow = parseFloat(snap.val());
                     sensorData.flowrate = flow;
 
-                    // Show flowrate only if solenoid ON
                     if (sensorData.solenoidStatus) {
+                        // Valve is open, normal flow display
                         updateUI("flowrate", flow.toFixed(2));
                     } else {
-                        updateUI("flowrate", "0.00 (Valve Closed)");
+                        // Valve closed
+                        if (flow > 0) {
+                            // Leak detected: flow while valve closed
+                            updateUI("flowrate", flow.toFixed(2));
+                            notifyUser("Warning: Flow detected while valve is closed! Possible leak.");
+                        } else {
+                            // No flow, valve closed
+                            updateUI("flowrate", "0.00 (Valve Closed)");
+                        }
                     }
                     updateAndNotify();
                 });
@@ -550,6 +558,14 @@
                 toggle.addEventListener("change", () => {
                     db.ref("/SolenoidValve/status").set(toggle.checked);
                 });
+
+                // Simple example notify function (replace with your UI notification system)
+                function notifyUser(message) {
+                    // e.g. alert(message);
+                    console.warn(message);
+                    // Or show a popup, toast, or other UI element for notification
+                }
+
 
             } else {
                 document.getElementById("loginSection").style.display = "block";
