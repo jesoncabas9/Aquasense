@@ -279,7 +279,7 @@
     <div id="loginSection" class="login-section" data-aos="flip-down" data-aos-duration="1000" data-aos-delay="100">
         <h2 id="titlex">Login</h2>
         <input type="email" id="email" placeholder="Email"><br>
-        <input type="password" id="password" placeholder="Password"><br><br>
+        <input type="password" id="password" placeholder="Password">
         <button onclick="login()" id="login">Login</button>
     </div>
 
@@ -517,7 +517,7 @@
 
                 db.ref("sensors/turbidity").on("value", snap => {
                     sensorData.turbidity = parseFloat(snap.val());
-                    updateUI("turbidity", sensorData.turbidity + "/5");
+                    updateUI("turbidity", sensorData.turbidity);
                     updateAndNotify();
                 });
 
