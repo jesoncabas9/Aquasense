@@ -253,6 +253,14 @@
             background-color: white;
             color: black;
         }
+        
+        #notificationsContainer {
+            color: white;
+            padding: 10px 20px;
+            max-height: 400px;
+            overflow-y: auto;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
     </style>
 
 </head>
@@ -271,8 +279,20 @@
 
     <div id="mainContent" style="display:none;">
         <div id="sidebar" class="sidebar">
+            <div id="userNameDisplay" style="color: white; font-weight: bold; font-size: 1.2em; padding: 10px 20px; border-bottom: 1px solid rgba(255,255,255,0.2);">
+                <!-- Username will appear here -->
+            </div>
+
+            <div id="notificationsContainer">
+                <h3 style="margin-top:0;">Notifisdasdcations</h3>
+                <ul id="notificationsList" style="list-style:none; padding-left:0; margin:0; font-size: 0.9em;">
+                    <!-- Notifications will go here -->
+                </ul>
+            </div>
+
             <button onclick="logout()" id="logout">Logout</button>
         </div>
+
 
         <button id="toggleSidebar" class="open-btn">&#9776;</button>
         <div class="card">
@@ -349,32 +369,185 @@
         }
 
         // Auth state listener
+        const thresholds = {
+            ph: {
+                min: 6.5, // WHO guideline for potable water
+                max: 8.5
+            },
+            tds: {
+                max: 500 // WHO and EPA recommend <500 mg/L for taste and health
+            },
+            turbidity: {
+                max: 5 // WHO: <5 NTU for drinking water, ideally <1 NTU
+            },
+            temperature: {
+                min: 5, // Below this, water is too cold for biological activity
+                max: 35 // Max for aquatic life; higher temps reduce oxygen levels
+            },
+            flowrate: {
+                min: 1 // 1 L/min minimum acceptable for consistent flow detection
+                    // Add max if you want, e.g. max: 10
+            }
+        };
+
+        function updateNotifications(notifs) {
+            const container = document.getElementById("notificationsContainer");
+            container.innerHTML = "";
+            notifs.forEach(({
+                message,
+                suggestion
+            }) => {
+                const div = document.createElement("div");
+                div.className = "notifications";
+                div.innerHTML = `<strong>${message}</strong><br><small>${suggestion}</small>`;
+                container.appendChild(div);
+            });
+        }
+
+        function generateNotifications(data) {
+            const notifications = [];
+
+            // pH check
+            if (data.ph < thresholds.ph.min || data.ph > thresholds.ph.max) {
+                notifications.push({
+                    message: `⚠️ pH level (${data.ph}) is out of safe range!`,
+                    suggestion: "Consider adjusting pH using buffer solutions or verifying your sensor calibration."
+                });
+            }
+
+            // TDS check
+            if (data.tds > thresholds.tds.max) {
+                notifications.push({
+                    message: `⚠️ TDS level (${data.tds} ppm) is too high!`,
+                    suggestion: "Use a water filter or reverse osmosis system to reduce dissolved solids."
+                });
+            }
+
+            // Turbidity check
+            if (data.turbidity > thresholds.turbidity.max) {
+                notifications.push({
+                    message: `⚠️ Turbidity (${data.turbidity}) indicates unclear water!`,
+                    suggestion: "Sediment filters or backwashing may help reduce turbidity levels."
+                });
+            }
+
+            // Temperature check
+            if (data.temperature < thresholds.temperature.min || data.temperature > thresholds.temperature.max) {
+                notifications.push({
+                    message: `⚠️ Temperature (${data.temperature}°C) is outside safe range!`,
+                    suggestion: "Check heating or cooling systems; temperature fluctuations can impact water quality."
+                });
+            }
+
+            // Flow rate check
+            if (data.flowrate < thresholds.flowrate.min && data.solenoidStatus) {
+                notifications.push({
+                    message: `⚠️ Flow rate (${data.flowrate} L/min) is too low!`,
+                    suggestion: "Inspect the pipeline for clogs or pump performance issues."
+                });
+            } else if (thresholds.flowrate.max && data.flowrate > thresholds.flowrate.max) {
+                notifications.push({
+                    message: `⚠️ Flow rate (${data.flowrate} L/min) is too high!`,
+                    suggestion: "Check for pressure surges or valve malfunction causing excess flow."
+                });
+            }
+
+            // Flow present while solenoid is OFF
+            if (!data.solenoidStatus && data.flowrate > 0) {
+                notifications.push({
+                    message: `⚠️ Flow detected (${data.flowrate} L/min) while solenoid valve is OFF!`,
+                    suggestion: "Check for leaks or a malfunctioning valve that may not be sealing properly."
+                });
+            }
+
+            // All good
+            if (notifications.length === 0) {
+                notifications.push({
+                    message: "✅ All systems are within safe levels.",
+                    suggestion: "Continue regular monitoring to maintain water quality."
+                });
+            }
+
+            updateNotifications(notifications);
+        }
+
         auth.onAuthStateChanged(user => {
             if (user) {
                 document.getElementById("loginSection").style.display = "none";
                 document.getElementById("mainContent").style.display = "block";
-            } else {
-                document.getElementById("loginSection").style.display = "block";
-                document.getElementById("mainContent").style.display = "none";
-            }
-        });
+                document.getElementById("userNameDisplay").textContent = `Welcome, ${user.displayName || user.email}`;
 
-        // Real-time database listeners (only run when user is authenticated)
-        auth.onAuthStateChanged(user => {
-            if (user) {
-                const updateUI = (id, val) => document.getElementById(id).textContent = val;
+                const sensorData = {
+                    ph: 7.2,
+                    tds: 320,
+                    turbidity: 3,
+                    temperature: 24,
+                    flowrate: 0,
+                    solenoidStatus: false // false = OFF, true = ON
+                };
 
-                db.ref("sensors/flowrate").on("value", snap => updateUI("flowrate", snap.val()));
-                db.ref("sensors/turbidity").on("value", snap => updateUI("turbidity", snap.val()));
-                db.ref("sensors/tds").on("value", snap => updateUI("tds", snap.val()));
-                db.ref("/sensors/temperature").on("value", snap => updateUI("temperature", snap.val()));
-                db.ref("sensors/ph").on("value", snap => updateUI("ph", snap.val()));
+                const updateUI = (id, val) => {
+                    document.getElementById(id).textContent = val;
+                };
+
+                const updateAndNotify = () => {
+                    generateNotifications(sensorData);
+                };
+
+                db.ref("sensors/ph").on("value", snap => {
+                    sensorData.ph = parseFloat(snap.val());
+                    updateUI("ph", sensorData.ph);
+                    updateAndNotify();
+                });
+
+                db.ref("sensors/tds").on("value", snap => {
+                    sensorData.tds = parseFloat(snap.val());
+                    updateUI("tds", sensorData.tds);
+                    updateAndNotify();
+                });
+
+                db.ref("sensors/turbidity").on("value", snap => {
+                    sensorData.turbidity = parseFloat(snap.val());
+                    updateUI("turbidity", sensorData.turbidity);
+                    updateAndNotify();
+                });
+
+                db.ref("sensors/temperature").on("value", snap => {
+                    sensorData.temperature = parseFloat(snap.val());
+                    updateUI("temperature", sensorData.temperature);
+                    updateAndNotify();
+                });
+
+                db.ref("sensors/flowrate").on("value", snap => {
+                    const flow = parseFloat(snap.val());
+                    sensorData.flowrate = flow;
+
+                    // Show flowrate only if solenoid ON
+                    if (sensorData.solenoidStatus) {
+                        updateUI("flowrate", flow.toFixed(2));
+                    } else {
+                        updateUI("flowrate", "0.00 (Valve Closed)");
+                    }
+                    updateAndNotify();
+                });
 
                 const toggle = document.getElementById("solenoidToggle");
-                db.ref("/SolenoidValve/status").on("value", snap => toggle.checked = snap.val());
+                db.ref("/SolenoidValve/status").on("value", snap => {
+                    const status = snap.val();
+                    toggle.checked = status;
+                    sensorData.solenoidStatus = status;
+                    updateAndNotify();
+                });
+
                 toggle.addEventListener("change", () => {
                     db.ref("/SolenoidValve/status").set(toggle.checked);
                 });
+
+            } else {
+                document.getElementById("loginSection").style.display = "block";
+                document.getElementById("mainContent").style.display = "none";
+                document.getElementById("userNameDisplay").textContent = "";
+                updateNotifications([]);
             }
         });
     </script>
