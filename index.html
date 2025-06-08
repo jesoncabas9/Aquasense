@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Aquasense Dashboard</title>
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <link rel=icon href="Aquasense Logo.ico" type="image/x-icon">
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -313,27 +314,27 @@
 
         <div class="card">
             <div class="label label2">Flow Rate (L/min)</div>
-            <div class="value" id="flowrate">0</div>
+            <div class="value" id="flowrate"></div>
         </div>
 
         <div class="card">
             <div class="label label3">Turbidity</div>
-            <div class="value" id="turbidity">0</div>
+            <div class="value" id="turbidity"></div>
         </div>
 
         <div class="card">
             <div class="label label4">TDS</div>
-            <div class="value" id="tds">0</div>
+            <div class="value" id="tds"></div>
         </div>
 
         <div class="card">
             <div class="label label5">Temperature (°C)</div>
-            <div class="value" id="temperature">25</div>
+            <div class="value" id="temperature"></div>
         </div>
 
         <div class="card">
             <div class="label label6">pH Level</div>
-            <div class="value" id="ph">7</div>
+            <div class="value" id="ph"></div>
         </div>
 
     </div>
@@ -516,7 +517,7 @@
 
                 db.ref("sensors/turbidity").on("value", snap => {
                     sensorData.turbidity = parseFloat(snap.val());
-                    updateUI("turbidity", sensorData.turbidity);
+                    updateUI("turbidity", sensorData.turbidity + "/5");
                     updateAndNotify();
                 });
 
@@ -530,22 +531,21 @@
                     const flow = parseFloat(snap.val());
                     sensorData.flowrate = flow;
 
+                    console.log("Valve status:", sensorData.solenoidStatus, "Flow:", flow);
+
                     if (sensorData.solenoidStatus) {
-                        // Valve is open, normal flow display
                         updateUI("flowrate", flow.toFixed(2));
                     } else {
-                        // Valve closed
                         if (flow > 0) {
-                            // Leak detected: flow while valve closed
                             updateUI("flowrate", flow.toFixed(2));
                             notifyUser("Warning: Flow detected while valve is closed! Possible leak.");
                         } else {
-                            // No flow, valve closed
-                            updateUI("flowrate", "0.00 (Valve Closed)");
+                            updateUI("flowrate", "0.00");
                         }
                     }
                     updateAndNotify();
                 });
+
 
                 const toggle = document.getElementById("solenoidToggle");
                 db.ref("/SolenoidValve/status").on("value", snap => {
